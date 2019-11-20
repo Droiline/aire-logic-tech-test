@@ -24,13 +24,22 @@ def main():
     sys.exit(1)
 
   artist_search = artist_search.json()
-  # for artist in artist_search['artists']:
-  #   print('"{name}" {disamb}'.format(
-  #     name=artist['name'],
-  #     disamb=artist['disambiguation'] if 'disambiguation' in artist else ''
-  #   ))
+  results = ['{}) "{}" {}'.format(n, artist['name'], artist['disambiguation'] if 'disambiguation' in artist else '')
+             for n, artist
+             in enumerate(artist_search['artists'])]
+  results = '\n'.join(results)
+  print(results)
 
-  artist = artist_search['artists'][0]
+  while True:
+    artist_choice = input('\nSelect artist by number: ')
+
+    try:
+      artist = artist_search['artists'][int(artist_choice)]
+    except Exception:
+      continue
+
+    break
+
   song_list = requests.get('{endpoint}{artist_id}?inc=work-rels&fmt=json'.format(
     endpoint=ARTIST_ENDPOINT,
     artist_id=artist['id']
@@ -54,8 +63,11 @@ def main():
 
     word_counts.append(len(lyrics.json()['lyrics'].split()))
 
-  mean = sum(word_counts) / len(word_counts)
-  print('\nmean: {0:.2f}'.format(mean))
+  try:
+    mean = sum(word_counts) / len(word_counts)
+    print('\nmean: {0:.2f}'.format(mean))
+  except ZeroDivisionError:
+    print('\nNo lyrics found for {}'.format(artist['name']))
 
 
 def parse_args():
